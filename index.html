@@ -94,13 +94,12 @@
   <iframe id="proxy-frame" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-modals allow-top-navigation"></iframe>
 </div>
 
-<!-- All deps from jsDelivr — no npm, no build step -->
 <script src="https://cdn.jsdelivr.net/npm/@mercuryworkshop/bare-mux@2/dist/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mercuryworkshop/scramjet@1.1.0/dist/scramjet.all.js"></script>
 
 <script>
-  const TARGET      = "https://www.snapchat.com/web";
-  const WISP_URL    = "wss://eu-central.wisp.q13x.com/wisp/";
+  const TARGET       = "https://www.snapchat.com/web";
+  const WISP_URL     = "wss://eu-central.wisp.q13x.com/wisp/";
   const SCRAM_PREFIX = "/scram/";
 
   const dot    = document.getElementById("status-dot");
@@ -116,11 +115,15 @@
     if (!("serviceWorker" in navigator)) {
       setStatus("error", "Service workers not supported"); return;
     }
-
     try {
       setStatus("loading", "Registering service worker...");
-      // scramjet.sw.js must live on the same origin as this page
-      await navigator.serviceWorker.register("/scramjet.sw.js", { scope: "/" });
+
+      // Automatically resolve paths relative to wherever this page is hosted
+      // Works whether deployed at root or a subfolder like /LAKAKALA/
+      const swPath  = new URL("scramjet.sw.js", location.href).pathname;
+      const swScope = location.pathname.replace(/\/[^/]*$/, "/") || "/";
+
+      await navigator.serviceWorker.register(swPath, { scope: swScope });
       await navigator.serviceWorker.ready;
 
       setStatus("loading", "Setting up Wisp transport...");
